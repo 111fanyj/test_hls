@@ -13,7 +13,7 @@ const server = http.createServer((req, res) => {
     if (fs.existsSync(filePath)) {
         const stat = fs.statSync(filePath);
         res.writeHead(200, {
-            'Content-Type': 'application/vnd.apple.mpegurl',
+            // 'Content-Type': 'application/vnd.apple.mpegurl',
             'Content-Length': stat.size
         });
         const readStream = fs.createReadStream(filePath);
