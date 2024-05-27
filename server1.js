@@ -3,11 +3,13 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = 8001;
-const VIDEO_PATH = './videos/fragmented2.mp4'; // 替换为你的视频文件路径
+// const VIDEO_PATH = './videos/fragmented2.mp4'; // 替换为你的视频文件路径
+const VIDEO_PATH = './videos/fraBox.mp4'; // 替换为你的视频文件路径
 
 http.createServer((req, res) => {
-
+    console.log(req.headers.range);
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Expose-Headers','Content-Range');
     res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type,responsetype');
 
@@ -27,12 +29,14 @@ http.createServer((req, res) => {
             'Content-Range': `bytes ${start}-${end}/${fileSize}`,
             'Accept-Ranges': 'bytes',
             'Content-Length': chunksize,
+            'Cus-File-Length':fileSize,
             'Content-Type': 'video/mp4',
         };
 
         res.writeHead(206, headers);
         file.pipe(res);
     } else {
+        console.log('no range');
         const headers = {
             'Content-Length': fileSize,
             'Content-Type': 'video/mp4',
@@ -41,6 +45,6 @@ http.createServer((req, res) => {
         res.writeHead(200, headers);
         fs.createReadStream(VIDEO_PATH).pipe(res);
     }
-}).listen(PORT, () => {
+}).listen(PORT,'0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
 });
