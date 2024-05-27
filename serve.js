@@ -6,7 +6,7 @@ const server = http.createServer((req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,responsetype');
 
     const filePath = path.join(__dirname, 'videos', req.url);
     
@@ -17,7 +17,7 @@ const server = http.createServer((req, res) => {
             'Content-Length': stat.size
         });
         const readStream = fs.createReadStream(filePath);
-        readStream.pipe(res);
+        readStream.pipe(res); 
     } else {
         res.writeHead(404);
         res.end();
