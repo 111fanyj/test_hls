@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = 8001;
-const VIDEO_PATH = './videos/fragmented.mp4'; // 替换为你的视频文件路径
+const VIDEO_PATH = './videos/fragmented2.mp4'; // 替换为你的视频文件路径
 
 http.createServer((req, res) => {
 

@@ -8,50 +8,60 @@
     <video controls></video>
     <script>
       var video = document.querySelector('video');
+ const rangeVideo = () => {
+    const totalSize = 15613524
+    const chunkSize = 1000000
+    const numChunks = Math.ceil(totalSize / chunkSize)
+    let index = 0
 
-      // var assetURL = 'http://localhost:8000/bunny.mp4';
-      // var assetURL = 'http://localhost:8000/fragmented.mp4'; //不行
-      var assetURL = 'http://localhost:8000/fragmented2.mp4'; //不行
-      // var assetURL = 'http://localhost:8000/test1.mp4'; // 不行
-      // Need to be specific for Blink regarding codecs
-      // ./mp4info frag_bunny.mp4 | grep Codec
-      var mimeCodec = 'video/mp4; codecs="avc1.640028, mp4a.40.2"';
+    // const assetURL = url
+    const assetURL = 'http://localhost:8001'
+    var mimeCodec = 'video/mp4; codecs="avc1.640028, mp4a.40.2"'
 
-      if ('MediaSource' in window && MediaSource.isTypeSupported(mimeCodec)) {
-        var mediaSource = new MediaSource;
-        console.log(mediaSource.readyState); // closed
-        video.src = URL.createObjectURL(mediaSource);
-        mediaSource.addEventListener('sourceopen', sourceOpen);
-      } else {
-        console.error('Unsupported MIME type or codec: ', mimeCodec);
+    console.log('ok')
+    var mediaSource = new MediaSource()
+    video.src = URL.createObjectURL(mediaSource)
+    mediaSource.addEventListener('sourceopen', sourceOpen)
+
+    function sourceOpen(e) {
+      console.log(e.currentTarget.readyState)
+      var sourceBuffer = mediaSource.addSourceBuffer(mimeCodec)
+      console.log(sourceBuffer)
+      const send = () => {
+        if (index >= numChunks) {
+          sourceBuffer.addEventListener('updateend', function (_) {
+            mediaSource.endOfStream()
+          })
+        } else {
+          const start = index * chunkSize
+          const end = Math.min(start + chunkSize - 1, totalSize - 1)
+          fetch(assetURL, {
+            headers: {
+              Range: `bytes=${start}-${end}`,
+              // Range: `bytes=${start}-`,
+              responseType: 'arraybuffer'
+            }
+          })
+            .then(async (response) => {
+              console.log(22)
+              const response1 = await response.arrayBuffer()
+              console.log(response1)
+              index++
+              await sourceBuffer.appendBuffer(response1)
+
+              send()
+              // video.play()
+            })
+            .catch((er) => {
+              console.log(er)
+            })
+        }
       }
 
-      function sourceOpen (_) {
-        console.log(this.readyState); // open
-        var mediaSource = this;
-        var sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
-        fetchAB(assetURL, function (buf) {
-          sourceBuffer.addEventListener('updateend', function (_) {
-            console.log(this,this.readyState);
-            mediaSource.endOfStream();
-            video.play();
-            //console.log(mediaSource.readyState); // ended
-          });
-          sourceBuffer.appendBuffer(buf);
-        });
-      };
-
-      function fetchAB (url, cb) {
-        console.log(url);
-        var xhr = new XMLHttpRequest;
-        xhr.open('get', url);
-        xhr.responseType = 'arraybuffer';
-        xhr.onload = function () {
-            console.log(1);
-          cb(xhr.response);
-        };
-        xhr.send();
-      };
+      send()
+    }
+  }
+  rangeVideo()
     </script>
   </body>
 </html>
